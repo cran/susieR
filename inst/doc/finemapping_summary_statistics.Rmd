@@ -1,0 +1,126 @@
+---
+title: "Fine-mapping with summary statistics"
+author: "Yuxin Zou and Gao Wang"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Fine-mapping with summary statistics}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE,comment = "#",fig.width = 5,
+                      fig.height = 3,fig.align = "center",
+                      fig.cap = "&nbsp;",dpi = 120)
+```
+
+This vignette demonstrates how to use `susieR` with "summary statistics" in the context of genetic fine-mapping. 
+We use the same simulated data as in [fine mapping vignette](finemapping.html). The simulated data is expression level of a gene ($y$) in $N \approx 600$ individuals. 
+We want to identify with the genotype matrix $X_{N\times P}$ ($P=1001$) the genetic variables that causes changes in expression level. The data-set is shipped with `susieR`. It is simulated to have exactly 3 non-zero effects.
+
+```{r}
+library(susieR)
+set.seed(1)
+```
+
+## The data-set
+
+```{r}
+data(N3finemapping)
+attach(N3finemapping)
+```
+
+Notice that we've simulated 2 sets of $Y$ as 2 simulation replicates. Here we'll focus on the first data-set.
+
+```{r}
+dim(Y)
+```
+
+Here are the 3 "true" signals in the first data-set:
+
+```{r}
+b <- true_coef[,1]
+plot(b, pch=16, ylab='effect size')
+```
+
+```{r}
+which(b != 0)
+```
+
+So the underlying causal variables are 403, 653 and 773.
+
+## Summary statistics from simple regression
+
+Summary statistics of genetic association studies typically contain effect size ($\hat{\beta}$ coefficient from regression), p-value and minor allele frequencies. 
+These information can be used to perform fine-mapping with given an additional input of correlation matrix between variables.
+The correlation matrix in genetics is typically referred to as LD matrix (LD for linkage disequilibrium). 
+One may use external reference panels to estimate it when this matrix cannot be obtained from samples directly.
+Caution that LD matrix here has to be correlation matrix $r$, not $r^2$ or $abs(r)$.
+
+`univariate_regression` function can be used to compute 
+summary statistics by fitting univariate simple regression variable by variable.
+The results are $\hat{\beta}$ and $SE(\hat{\beta})$ from which z-scores can be derived. 
+Alternatively you can obtain z-scores from $\hat{\beta}$ and p-values if you are provided with those information.
+Again we focus only on results from the first data-set:
+
+```{r}
+sumstats <- univariate_regression(X, Y[,1])
+z_scores <- sumstats$betahat / sumstats$sebetahat
+susie_plot(z_scores, y = "z", b=b)
+```
+
+For this example the correlation matrix can be computed directly from data provide,
+
+```{r}
+R <- cor(X)
+```
+
+## Fine-mapping with `susieR` using summary statistics
+
+For starters, we assume there are at most 10 causal variables, i.e. set `L = 10`, although SuSiE is generally robust to the choice of `L`.
+
+SuSiE regression with summary statistics is implemented as `susie_rss` function, 
+
+```{r}
+fitted_rss <- susie_rss(z_scores, R, L = 10)
+```
+
+Using `summary` function, we can examine the posterior inclusion probability (PIP) for each variable, and the 95% credible sets. 
+
+Here, we are the 95% credible sets.
+
+```{r}
+summary(fitted_rss)$cs
+```
+
+The 3 causal signals have been captured by the 3 CS reported here. The
+3rd CS contains many variables, including the true causal variable
+403.
+
+We can also plot the posterior inclusion probability (PIP),
+
+```{r}
+susie_plot(fitted_rss, y="PIP", b=b)
+```
+
+The true causal variables are colored red. The 95% CS identified are circled in different colors.
+
+The result should be very similar to using the individual level data for this example, as the z-scores and correlation matrix (LD reference)
+come from the same genotype data-set.
+
+```{r, fig.width=6,fig.height=6}
+fitted = susie(X, Y[,1], L = 10,
+                estimate_residual_variance = TRUE, 
+                estimate_prior_variance = TRUE)
+plot(fitted$pip, fitted_rss$pip, ylim=c(0,1))
+```
+
+## Session information
+
+Here are some details about the computing environment, including the
+versions of R, and the R packages, used to generate these results.
+
+```{r}
+sessionInfo()
+```
