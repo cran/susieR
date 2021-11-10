@@ -5,8 +5,13 @@ knitr::opts_chunk$set(collapse = TRUE,comment = "#",fig.width = 5,
 
 ## -----------------------------------------------------------------------------
 library(susieR)
-data('FinemappingConvergence')
-b = FinemappingConvergence$true_coef
+library(curl)
+data_file <- tempfile(fileext = ".RData")
+data_url <- paste0("https://raw.githubusercontent.com/stephenslab/susieR/",
+                   "master/inst/datafiles/FinemappingConvergence1k.RData")
+curl_download(data_url,data_file)
+load(data_file)
+b <- FinemappingConvergence$true_coef
 susie_plot(FinemappingConvergence$z, y = "z", b=b)
 
 ## -----------------------------------------------------------------------------

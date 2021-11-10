@@ -27,7 +27,10 @@ a list containing a ggplot2 plot object and a table. The plot
   compares observed z score vs the expected value. The possible allele
   switched variants are labeled as red points (log LR > 2 and abs(z) > 2).
   The table summarizes the conditional distribution for each variant
-  and the likelihood ratio test.
+  and the likelihood ratio test. The table has the following columns:
+  the observed z scores, the conditional expectation, the conditional
+  variance, the standardized differences between the observed z score
+  and expected value, the log likelihood ratio statistics.
 }
 \description{
 Under the null, the rss model with regularized LD
@@ -41,6 +44,8 @@ Under the null, the rss model with regularized LD
   using likelihood ratio for each variant.
 }
 \examples{
+# See also the vignette, "Diagnostic for fine-mapping with summary
+# statistics."
 set.seed(1)
 n = 500
 p = 1000
@@ -53,7 +58,7 @@ ss = univariate_regression(X,y)
 R = cor(X)
 attr(R,"eigen") = eigen(R, symmetric = TRUE)
 zhat = with(ss,betahat/sebetahat)
-condz = kriging_rss(zhat, R)
-condz$plot
+cond_dist = kriging_rss(zhat, R)
+cond_dist$plot
 
 }

@@ -39,9 +39,7 @@ summary(fitted_rss)$cs
 susie_plot(fitted_rss, y="PIP", b=b)
 
 ## ---- fig.width=6,fig.height=6------------------------------------------------
-fitted = susie(X, Y[,1], L = 10,
-                estimate_residual_variance = TRUE, 
-                estimate_prior_variance = TRUE)
+fitted = susie(X, Y[,1], L = 10)
 plot(fitted$pip, fitted_rss$pip, ylim=c(0,1))
 
 ## -----------------------------------------------------------------------------

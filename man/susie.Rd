@@ -31,7 +31,8 @@ susie(
   verbose = FALSE,
   track_fit = FALSE,
   residual_variance_lowerbound = var(drop(y))/10000,
-  refine = FALSE
+  refine = FALSE,
+  n_purity = 100
 )
 
 susie_suff_stat(
@@ -67,7 +68,9 @@ susie_suff_stat(
   verbose = FALSE,
   track_fit = FALSE,
   check_input = FALSE,
-  refine = FALSE
+  refine = FALSE,
+  check_prior = FALSE,
+  n_purity = 100
 )
 }
 \arguments{
@@ -194,15 +197,16 @@ residual variance. It is only relevant when
 iterative refinement procedure is used, after the IBSS algorithm,
 to check and escape from local optima (see details).}
 
+\item{n_purity}{Passed as argument \code{n_purity} to
+\code{\link{susie_get_cs}}.}
+
 \item{bhat}{A p-vector of estimated effects.}
 
 \item{shat}{A p-vector of standard errors.}
 
-\item{R}{A p by p symmetric, positive semidefinite matrix. It
-can be \eqn{X'X}, the covariance matrix \eqn{X'X/(n-1)}, or a
-correlation matrix. It should be estimated from the same samples
-used to compute \code{bhat} and \code{shat}. Using an out-of-sample
-matrix may produce unreliable results.}
+\item{R}{A p by p correlation matrix. It should be estimated from
+the same samples used to compute \code{bhat} and \code{shat}. Using
+an out-of-sample matrix may produce unreliable results.}
 
 \item{n}{The sample size.}
 
@@ -242,6 +246,10 @@ semidefinite matrix of R.}
 \code{Xty}. The checks are: (1) check that \code{XtX} is positive
 semidefinite; (2) check that \code{Xty} is in the space spanned by
 the non-zero eigenvectors of \code{XtX}.}
+
+\item{check_prior}{If \code{check_prior = TRUE}, it checks if the
+estimated prior variance becomes unreasonably large (comparing with
+10 * max(abs(z))^2).}
 }
 \value{
 A \code{"susie"} object with some or all of the following
@@ -339,8 +347,8 @@ have mean 0; these can be computed using \code{compute_suff_stat}.
 Alternatively the user can provide \code{n} and \code{bhat} (the
 univariate OLS estimates from regressing y on each column of X),
 \code{shat} (the standard errrors from these OLS regressions), the
-p by p symmetric, positive semidefinite correlation (or covariance)
-matrix \eqn{R = (1/(n-1))X'X}, and the variance of \eqn{y}, again
+p by p symmetric, positive semidefinite correlation
+matrix \eqn{R = cov2cor(X'X)}, and the variance of \eqn{y}, again
 all computed from centered \eqn{X} and \eqn{y}. Note that here
 \code{R} and \code{bhat} should be computed using the same matrix
 \eqn{X}. If you do not have access to the original \eqn{X} to
@@ -408,6 +416,10 @@ G. Wang, A. Sarkar, P. Carbonetto and M. Stephens (2020). A simple
   new approach to variable selection in regression, with application
   to genetic fine-mapping. \emph{Journal of the Royal Statistical
   Society, Series B} \bold{82}, 1273-1300 \doi{10.1101/501114}.
+
+  Y. Zou, P. Carbonetto, G. Wang and M. Stephens (2021).
+  Fine-mapping from summary data with the \dQuote{Sum of Single Effects}
+  model. \emph{bioRxiv} \doi{10.1101/2021.11.03.467167}.
 }
 \seealso{
 \code{\link{susie_get_cs}} and other \code{susie_get_*}

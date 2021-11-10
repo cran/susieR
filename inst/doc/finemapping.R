@@ -29,10 +29,7 @@ susie_plot(z_scores, y = "z", b=b)
 ## -----------------------------------------------------------------------------
 fitted <- susie(X, Y[,1],
                 L = 10,
-                estimate_residual_variance = TRUE, 
-                estimate_prior_variance = FALSE,
-                scaled_prior_variance = 0.1,
-				verbose = TRUE)
+		verbose = TRUE)
 
 ## -----------------------------------------------------------------------------
 print(fitted$sets)
@@ -63,12 +60,6 @@ fitted = susie(X, Y[,1],
                scaled_prior_variance = 0.2)
 susie_plot(fitted, y='PIP', b=b)
 
-## -----------------------------------------------------------------------------
-fitted = susie(X, Y[,1],
-               L = 10,
-               estimate_residual_variance = TRUE)
-susie_plot(fitted, y='PIP', b=b)
-
 ## ---- eval=FALSE--------------------------------------------------------------
 #  remove.covariate.effects <- function (X, Z, y) {
 #    # include the intercept term
@@ -83,8 +74,7 @@ susie_plot(fitted, y='PIP', b=b)
 #  
 #  out = remove.covariate.effects(X, Z, Y[,1])
 #  fitted_adjusted = susie(out$X, out$y,
-#                 L = 10,
-#                 estimate_residual_variance = TRUE)
+#                 L = 10) ,
 
 ## -----------------------------------------------------------------------------
 sessionInfo()

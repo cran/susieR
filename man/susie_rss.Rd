@@ -8,17 +8,16 @@ susie_rss(
   z,
   R,
   z_ld_weight = 0,
-  L = 10,
   prior_variance = 50,
   estimate_prior_variance = TRUE,
+  check_prior = TRUE,
   ...
 )
 }
 \arguments{
 \item{z}{A p-vector of z scores.}
 
-\item{R}{A p by p symmetric, positive semidefinite correlation
-matrix.}
+\item{R}{A p by p correlation matrix.}
 
 \item{z_ld_weight}{This parameter is included for backwards
 compatibility with previous versions of the function, but it is no
@@ -26,10 +25,6 @@ longer recommended to use a non-zero value. If \code{z_ld_weight
 > 0}, the matrix R used in the model is adjusted to be
 \code{cov2cor((1-w)*R + w*tcrossprod(z))}, where \code{w =
 z_ld_weight}.}
-
-\item{L}{Maximum number of components (nonzero coefficients) in the
-susie regression model. If L is larger than the number of
-covariates, p, L is set to p.}
 
 \item{prior_variance}{The prior variance(s) for the non-zero
 element of \eqn{b_l}. It is either a scalar, or a vector of length
@@ -45,6 +40,10 @@ provided, \code{prior_variance} is then used as an initial value
 for the optimization. When \code{estimate_prior_variance = FALSE}
 (not recommended) the prior variance for each of the L effects is
 determined by the value supplied to \code{prior_variance}.}
+
+\item{check_prior}{When \code{check_prior = TRUE}, it checks if the
+estimated prior variance becomes unreasonably large (comparing with
+10 * max(abs(z))^2).}
 
 \item{\dots}{Other parameters to be passed to
 \code{\link{susie_suff_stat}}.}
@@ -153,16 +152,39 @@ input_ss = compute_suff_stat(X,y,standardize = TRUE)
 ss   = univariate_regression(X,y)
 R    = with(input_ss,cov2cor(XtX))
 zhat = with(ss,betahat/sebetahat)
-res  = susie_rss(zhat,R,L = 10)
+res  = susie_rss(zhat,R)
+
+# Toy example illustrating behaviour susie_rss when the z-scores
+# are mostly consistent with a non-invertible correlation matrix.
+# Here the CS should contain both variables, and two PIPs should
+# be nearly the same.
+z = c(6,6.01)
+R = matrix(1,2,2)
+fit = susie_rss(z,R)
+print(fit$sets$cs)
+print(fit$pip)
+
+# In this second toy example, the only difference is that one
+# z-score is much larger than the other. Here we expect that the
+# second PIP will be much larger than the first.
+z = c(6,7)
+R = matrix(1,2,2)
+fit = susie_rss(z,R)
+print(fit$sets$cs)
+print(fit$pip)
 
 }
 \references{
 G. Wang, A. Sarkar, P. Carbonetto and M. Stephens (2020). A simple
   new approach to variable selection in regression, with application
   to genetic fine-mapping. \emph{Journal of the Royal Statistical
-  Society, Series B} \bold{82} \doi{10.1101/501114}.
+  Society, Series B} \bold{82}, 1273-1300 \doi{10.1101/501114}.
 
-X. Zhu and M. Stephens (2017). Bayesian large-scale multiple regression
-  with summary statistics from genome-wide association studies.
-  \emph{Annals of Applied Statistics} \bold{11}, 1561-1592.
+  Y. Zou, P. Carbonetto, G. Wang and M. Stephens (2021).
+  Fine-mapping from summary data with the \dQuote{Sum of Single Effects}
+  model. \emph{bioRxiv} \doi{10.1101/2021.11.03.467167}.
+
+  X. Zhu and M. Stephens (2017). Bayesian large-scale multiple
+  regression with summary statistics from genome-wide association
+  studies. \emph{Annals of Applied Statistics} \bold{11}, 1561-1592.
 }

@@ -243,14 +243,32 @@ susie_get_posterior_samples = function (susie_fit, num_samples) {
 #' @param squared If \code{squared = TRUE}, report min, mean and
 #' median of squared correlation instead of the absolute correlation.
 #'
+#' @param check_symmetric If \code{check_symmetric = TRUE}, perform a
+#'   check for symmetry of matrix \code{Xcorr} when \code{Xcorr} is
+#'   provided (not \code{NULL}).
+#'
+#' @param n_purity The maximum number of credible set (CS) variables
+#'   used in calculating the correlation (\dQuote{purity})
+#'   statistics. When the number of variables included in the CS is
+#'   greater than this number, the CS variables are randomly subsampled.
+#'
+#' @importFrom crayon red
+#' 
 #' @export
 #'
 susie_get_cs = function (res, X = NULL, Xcorr = NULL, coverage = 0.95,
-                         min_abs_corr = 0.5, dedup = TRUE, squared = FALSE) {
+                         min_abs_corr = 0.5, dedup = TRUE, squared = FALSE,
+                         check_symmetric = TRUE, n_purity = 100) {
   if (!is.null(X) && !is.null(Xcorr))
     stop("Only one of X or Xcorr should be specified")
-  if (!is.null(Xcorr) && !is_symmetric_matrix(Xcorr))
-    stop("Xcorr matrix must be symmetric")
+  if (check_symmetric){
+    if (!is.null(Xcorr) && !is_symmetric_matrix(Xcorr)) {
+      message(red("Xcorr is not symmetric; forcing Xcorr to be symmetric ",
+                  "by replacing Xcorr with (Xcorr + t(Xcorr))/2"))
+      Xcorr = Xcorr + t(Xcorr)
+      Xcorr = Xcorr/2
+    }
+  }
   null_index = 0
   include_idx = rep(TRUE,nrow(res$alpha))
   if (!is.null(res$null_index)) null_index = res$null_index
@@ -283,12 +301,16 @@ susie_get_cs = function (res, X = NULL, Xcorr = NULL, coverage = 0.95,
                 coverage = claimed_coverage,
                 requested_coverage = coverage))
   } else {
-    purity = data.frame(do.call(rbind,lapply(1:length(cs),function (i) {
-              if (null_index > 0 && null_index %in% cs[[i]])
-                c(-9,-9,-9)
-              else
-                get_purity(cs[[i]],X,Xcorr,squared)
-             })))
+    purity <- NULL
+    for (i in 1:length(cs)) {
+      if (null_index > 0 && null_index %in% cs[[i]])
+        purity <- rbind(purity,c(-9,-9,-9))
+      else
+        purity <-
+          rbind(purity,
+                matrix(get_purity(cs[[i]],X,Xcorr,squared,n_purity),1,3))
+    }
+    purity <- as.data.frame(purity)
     if (squared)
       colnames(purity) = c("min.sq.corr","mean.sq.corr","median.sq.corr")
     else
@@ -296,8 +318,8 @@ susie_get_cs = function (res, X = NULL, Xcorr = NULL, coverage = 0.95,
     threshold = ifelse(squared,min_abs_corr^2,min_abs_corr)
     is_pure = which(purity[,1] >= threshold)
     if (length(is_pure) > 0) {
-      cs = cs[is_pure]
-      purity = purity[is_pure,]
+      cs        = cs[is_pure]
+      purity    = purity[is_pure,]
       row_names = paste0("L",which(include_idx)[is_pure])
       names(cs) = row_names
       rownames(purity) = row_names
@@ -310,16 +332,16 @@ susie_get_cs = function (res, X = NULL, Xcorr = NULL, coverage = 0.95,
                   coverage = claimed_coverage[ordering],
                   requested_coverage=coverage))
     } else
-      return(list(cs = NULL,coverage = NULL, requested_coverage = coverage))
+      return(list(cs = NULL,coverage = NULL,requested_coverage = coverage))
   }
 }
 
 #' @title Get Correlations Between CSs, using Variable with Maximum PIP From Each CS
 #'
 #' @description This function evaluates the correlation between single effect
-#'   CSs. It is not part of the SuSiE inference. Rather, it is designed as 
+#'   CSs. It is not part of the SuSiE inference. Rather, it is designed as
 #'   a diagnostic tool to assess how correlated the reported CS are.
-#' 
+#'
 #' @param model A SuSiE fit, typically an output from
 #'   \code{\link{susie}} or one of its variants.
 #'
@@ -339,7 +361,9 @@ susie_get_cs = function (res, X = NULL, Xcorr = NULL, coverage = 0.95,
 #'
 #' @return A matrix of correlations between CSs, or the maximum
 #'   absolute correlation when \code{max = TRUE}.
-#'
+#' 
+#' @importFrom crayon red
+#' 
 #' @export
 #'
 get_cs_correlation = function (model, X = NULL, Xcorr = NULL, max = FALSE) {
@@ -348,8 +372,12 @@ get_cs_correlation = function (model, X = NULL, Xcorr = NULL, max = FALSE) {
     stop("Only one of X or Xcorr should be specified")
   if (is.null(Xcorr) && is.null(X))
     stop("One of X or Xcorr must be specified")
-  if (!is.null(Xcorr) && !is_symmetric_matrix(Xcorr))
-    stop("Xcorr matrix must be symmetric")
+  if (!is.null(Xcorr) && !is_symmetric_matrix(Xcorr)) {
+    message(red("Xcorr is not symmetric; forcing Xcorr to be symmetric ",
+                "by replacing Xcorr with (Xcorr + t(Xcorr))/2"))
+    Xcorr = Xcorr + t(Xcorr)
+    Xcorr = Xcorr/2
+  }
   # Get index for the best PIP per CS
   max_pip_idx = sapply(model$sets$cs, function(cs) cs[which.max(model$pip[cs])])
   if (is.null(Xcorr)) {
@@ -444,30 +472,32 @@ n_in_CS = function(res, coverage = 0.9) {
 #
 #' @importFrom stats median
 get_purity = function(pos, X, Xcorr, squared = FALSE, n = 100) {
+  if (requireNamespace("Rfast",quietly = TRUE)) {
+    get_upper_tri <- Rfast::upper_tri
+    get_median    <- Rfast::med
+  } else {
+    get_upper_tri <- upper.tri
+    get_median    <- stats::median
+  }
   if (length(pos) == 1)
-    c(1,1,1)
+    return(c(1,1,1))
   else {
+
+    # Subsample the columns if necessary.
     if (length(pos) > n)
-      pos = sample(pos, n)
+      pos = sample(pos,n)
+
     if (is.null(Xcorr)) {
       X_sub = X[,pos]
-      if (length(pos) > n) {
-
-        # Remove identical columns.
-        pos_rm = sapply(1:ncol(X_sub),
-                       function(i) all(abs(X_sub[,i] - mean(X_sub[,i])) <
-                                       .Machine$double.eps^0.5))
-        if (length(pos_rm))
-          X_sub = X_sub[,-pos_rm]
-      }
-      value = abs(muffled_corr(as.matrix(X_sub)))
+      X_sub = as.matrix(X_sub)
+      value = abs(get_upper_tri(muffled_corr(X_sub)))
     } else
-      value = abs(Xcorr[pos,pos])
+      value = abs(get_upper_tri(Xcorr[pos,pos]))
     if (squared)
       value = value^2
-    return(c(min(value,na.rm = TRUE),
-             mean(value,na.rm = TRUE),
-             median(value,na.rm = TRUE)))
+    return(c(min(value),
+             sum(value)/length(value),
+             get_median(value)))
   }
 }
 
@@ -496,17 +526,17 @@ muffled_cov2cor = function (x)
 # Check for symmetric matrix.
 #' @keywords internal
 is_symmetric_matrix = function (x) {
-  res = isSymmetric(x)
-  if (!res)
-    res = isSymmetric(unname(x))
-  return(res)
+  if (requireNamespace("Rfast",quietly = TRUE))
+    return(Rfast::is.symmetric(x))
+  else
+    return(isSymmetric(x))
 }
 
 # Compute standard error for regression coef.
 # S = (X'X)^-1 \Sigma
 #' @keywords internal
 calc_stderr = function (X, residuals)
-  sqrt(diag(sum(residuals^2)/(nrow(X) - 2) * chol2inv(chol(t(X) %*% X))))
+  sqrt(diag(sum(residuals^2)/(nrow(X) - 2) * chol2inv(chol(crossprod(X)))))
 
 # Return residuals of Y after removing the linear effects of the susie
 # model.
@@ -523,10 +553,9 @@ susie_slim = function (res)
 
 # Prune single effects to given number L in susie model object.
 #' @keywords internal
-susie_prune_single_effects = function (s,L = 0,V = NULL,verbose = FALSE) {
+susie_prune_single_effects = function (s,L = 0,V = NULL) {
   num_effects = nrow(s$alpha)
   if (L == 0) {
-
     # Filtering will be based on non-zero elements in s$V.
     if (!is.null(s$V))
       L = length(which(s$V > 0))
@@ -541,20 +570,13 @@ susie_prune_single_effects = function (s,L = 0,V = NULL,verbose = FALSE) {
     effects_rank = c(s$sets$cs_index,setdiff(1:num_effects,s$sets$cs_index))
   else
     effects_rank = 1:num_effects
-  if (verbose)
-    warning(paste("Specified number of effects L =",L,
-                  "does not match the number of effects",num_effects,
-                  "in input SuSiE model. It will be",
-                  ifelse(L < num_effects,"pruned","expanded"),"to have",L,
+
+  if (L > num_effects) {
+    message(paste("Specified number of effects L =",L,
+                  "is greater the number of effects",num_effects,
+                  "in input SuSiE model. The SuSiE model will be expanded to have",L,
                   "effects."))
-  if (L < num_effects) {
-    for (n in c("alpha","mu","mu2","lbf_variable"))
-      if (!is.null(s[[n]]))
-        s[[n]] = s[[n]][effects_rank,][1:L,]
-    for (n in c("KL","lbf","V"))
-      if (!is.null(s[[n]]))
-        s[[n]] = s[[n]][effects_rank][1:L]
-  } else {
+
     s$alpha = rbind(s$alpha[effects_rank,],
                     matrix(1/ncol(s$alpha),L - num_effects,ncol(s$alpha)))
     for (n in c("mu","mu2","lbf_variable"))
@@ -694,7 +716,10 @@ estimate_s_rss = function (z, R, r_tol = 1e-08, method = "null-mle") {
 #'   compares observed z score vs the expected value. The possible allele
 #'   switched variants are labeled as red points (log LR > 2 and abs(z) > 2).
 #'   The table summarizes the conditional distribution for each variant
-#'   and the likelihood ratio test.
+#'   and the likelihood ratio test. The table has the following columns:
+#'   the observed z scores, the conditional expectation, the conditional
+#'   variance, the standardized differences between the observed z score
+#'   and expected value, the log likelihood ratio statistics.
 #'
 #' @importFrom stats dnorm
 #' @importFrom ggplot2 ggplot
@@ -706,6 +731,8 @@ estimate_s_rss = function (z, R, r_tol = 1e-08, method = "null-mle") {
 #' @importFrom mixsqp mixsqp
 #'
 #' @examples
+#' # See also the vignette, "Diagnostic for fine-mapping with summary
+#' # statistics."
 #' set.seed(1)
 #' n = 500
 #' p = 1000
@@ -718,8 +745,8 @@ estimate_s_rss = function (z, R, r_tol = 1e-08, method = "null-mle") {
 #' R = cor(X)
 #' attr(R,"eigen") = eigen(R, symmetric = TRUE)
 #' zhat = with(ss,betahat/sebetahat)
-#' condz = kriging_rss(zhat, R)
-#' condz$plot
+#' cond_dist = kriging_rss(zhat, R)
+#' cond_dist$plot
 #'
 #' @export
 #'
@@ -749,14 +776,15 @@ kriging_rss = function (z, R, r_tol = 1e-08,
     condmean[i] = -(1/precision[i,i]) * precision[i,-i] %*% z[-i]
     condvar[i] = 1/precision[i,i]
   }
-  cond_z = (z-condmean)/sqrt(condvar)
+  z_std_diff = (z-condmean)/sqrt(condvar)
 
   # obtain grid
   a_min = 0.8
-  if (max(cond_z^2) < 1)
+  if (max(z_std_diff^2) < 1){
     a_max = 2
-  else
-    a_max = 2*sqrt(max(cond_z^2))
+  }else{
+    a_max = 2*sqrt(max(z_std_diff^2))
+  }
   npoint = ceiling(log2(a_max/a_min)/log2(1.05))
   a_grid = 1.05^((-npoint):0) * a_max
 
@@ -777,21 +805,126 @@ kriging_rss = function (z, R, r_tol = 1e-08,
   logLRmix    = logl1mix - logl0mix
 
   res = data.frame(z = z,condmean = condmean,condvar = condvar,
-                   cond_z = cond_z,logLR = logLRmix)
+                   z_std_diff = z_std_diff,logLR = logLRmix)
 
-  p = ggplot(res) + geom_point(aes(x = z, y = condmean)) +
-    labs(x = "Observed z scores", y = "Expected value") +
+  p = ggplot(res) + geom_point(aes(y = z, x = condmean)) +
+    labs(y = "Observed z scores", x = "Expected value") +
     geom_abline(intercept = 0, slope = 1) +
     theme_bw()
 
   idx = which(logLRmix > 2 & abs(z) > 2)
   if(length(idx) > 0) {
-    p = p + geom_point(aes(x = z[idx], y = condmean[idx]),col = "red")
+    p = p + geom_point(data = res[idx,],
+                       aes(y = z, x = condmean),col = "red")
   }
 
   return(list(plot = p,
               conditional_dist = res))
 }
 
+# Compute the column means of X, the column standard deviations of X,
+# and rowSums(Y^2), where Y is the centered and/or scaled version of
+# X.
+#
+#' @importFrom Matrix rowSums
+#' @importFrom Matrix colMeans
+compute_colstats = function (X, center = TRUE, scale = TRUE) {
+  n = nrow(X)
+  p = ncol(X)
+  if (!is.null(attr(X,"matrix.type"))) {
 
+    # X is a trend filtering matrix.
+    cm  = compute_tf_cm(attr(X,"order"),p)
+    csd = compute_tf_csd(attr(X,"order"),p)
+    d   = compute_tf_d(attr(X,"order"),p,cm,csd,scale,center)
+    if (!center)
+      cm = rep(0,p)
+    if (!scale)
+      csd = rep(1,p)
+  } else {
 
+    # X is an ordinary dense or sparse matrix. Set sd = 1 when the
+    # column has variance 0.
+    if (center)
+      cm = colMeans(X,na.rm = TRUE)
+    else
+      cm = rep(0,p)
+    if (scale) {
+      csd = compute_colSds(X)
+      csd[csd == 0] = 1
+    } else
+      csd = rep(1,p)
+
+    # These two lines of code should give the same result as
+    #
+    #   Y = (t(X) - cm)/csd
+    #   d = rowSums(Y^2)
+    #
+    # for all four combinations of "center" and "scale", but do so
+    # without having to modify X, or create copies of X in memory. In
+    # particular the first line should be equivalent to colSums(X^2).
+    d = n*colMeans(X)^2 + (n-1)*compute_colSds(X)^2
+    d = (d - n*cm^2)/csd^2
+  }
+
+  return(list(cm = cm,csd = csd,d = d))
+}
+
+# @title computes column standard deviations for any type of matrix
+# @details This should give the same result as matrixStats::colSds(X),
+#   but allows for sparse matrices as well as dense ones.
+# @param X an n by p matrix of any type, e.g. sparse, dense.
+# @return a p vector of column standard deviations.
+#
+#' @importFrom Matrix rowSums
+#' @importFrom Matrix colSums
+#' @importFrom Matrix rowMeans
+#' @importFrom matrixStats colSds
+compute_colSds = function(X) {
+  if (is.matrix(X))
+    y = colSds(X)
+  else {
+    n = nrow(X)
+    X = t(X)
+    X = X - rowMeans(X)
+    y = sqrt(rowSums(X^2)/(n-1))
+  }
+  return(y)
+}
+
+# @title Check whether A is positive semidefinite
+# @param A a symmetric matrix
+# @return a list of result:
+# \item{matrix}{The matrix with eigen decomposition}
+# \item{status}{whether A is positive semidefinite}
+# \item{eigenvalues}{eigenvalues of A truncated by r_tol}
+check_semi_pd = function (A, tol) {
+  attr(A,"eigen") = eigen(A,symmetric = TRUE)
+  v = attr(A,"eigen")$values
+  v[abs(v) < tol] = 0
+  return(list(matrix      = A,
+              status      = !any(v < 0),
+              eigenvalues = v))
+}
+
+# @title Check whether b is in space spanned by the non-zero eigenvectors
+#   of A
+# @param A a p by p matrix
+# @param b a length p vector
+# @return a list of result:
+# \item{status}{whether b in space spanned by the non-zero
+#  eigenvectors of A}
+# \item{msg}{msg gives the difference between the projected b and b if
+#   status is FALSE}
+check_projection = function (A, b) {
+  if (is.null(attr(A,"eigen")))
+    attr(A,"eigen") = eigen(A,symmetric = TRUE)
+  v = attr(A,"eigen")$values
+  B = attr(A,"eigen")$vectors[,v > .Machine$double.eps]
+  msg = all.equal(as.vector(B %*% crossprod(B,b)),as.vector(b),
+                  check.names = FALSE)
+  if (!is.character(msg))
+    return(list(status = TRUE,msg = NA))
+  else
+    return(list(status = FALSE,msg = msg))
+}

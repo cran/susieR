@@ -14,8 +14,8 @@ Description: Implements methods for variable selection in linear
     called "Iterative Bayesian Stepwise Selection" (IBSS), is simple
     and fast, allowing the SuSiE model be fit to large data sets
     (thousands of samples and hundreds of thousands of variables).
-Date: 2021-06-07
-Version: 0.11.42
+Date: 2021-11-09
+Version: 0.11.84
 Authors@R: c(person("Gao","Wang",role="aut",email="wang.gao@columbia.edu"),
              person("Yuxin","Zou",role="aut"),
              person("Kaiqian","Zhang",role="aut"),
@@ -26,15 +26,16 @@ URL: https://github.com/stephenslab/susieR
 BugReports: https://github.com/stephenslab/susieR/issues
 License: MIT + file LICENSE
 Depends: R (>= 3.0.0)
-Imports: methods, graphics, grDevices, stats, Matrix, mixsqp, reshape,
-        ggplot2
-Suggests: testthat, microbenchmark, knitr, rmarkdown, L0Learn, genlasso
+Imports: methods, graphics, grDevices, stats, Matrix, matrixStats,
+        mixsqp, reshape, crayon, ggplot2
+Suggests: curl, testthat, microbenchmark, knitr, rmarkdown, L0Learn,
+        genlasso, Rfast
 LazyData: yes
 LazyDataCompression: xz
 NeedsCompilation: no
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 VignetteBuilder: knitr
-Packaged: 2021-06-08 03:10:06 UTC; pcarbo
+Packaged: 2021-11-10 03:37:22 UTC; pcarbo
 Author: Gao Wang [aut],
   Yuxin Zou [aut],
   Kaiqian Zhang [aut],
@@ -42,4 +43,4 @@ Author: Gao Wang [aut],
   Matthew Stephens [aut]
 Maintainer: Peter Carbonetto <peter.carbonetto@gmail.com>
 Repository: CRAN
-Date/Publication: 2021-06-14 13:50:09 UTC
+Date/Publication: 2021-11-10 06:10:02 UTC
