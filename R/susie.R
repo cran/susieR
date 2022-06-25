@@ -36,20 +36,11 @@
 #' If the sufficient statistics are computed correctly then the
 #' results from \code{susie_suff_stat} should be the same as (or very
 #' similar to) \code{susie}, although runtimes will differ as
-#' discussed below. The simplest sufficient statistics are the sample
+#' discussed below. The sufficient statistics are the sample
 #' size \code{n}, and then the p by p matrix \eqn{X'X}, the p-vector
 #' \eqn{X'y}, and the sum of squared y values \eqn{y'y}, all computed
 #' after centering the columns of \eqn{X} and the vector \eqn{y} to
 #' have mean 0; these can be computed using \code{compute_suff_stat}.
-#' Alternatively the user can provide \code{n} and \code{bhat} (the
-#' univariate OLS estimates from regressing y on each column of X),
-#' \code{shat} (the standard errrors from these OLS regressions), the
-#' p by p symmetric, positive semidefinite correlation
-#' matrix \eqn{R = cov2cor(X'X)}, and the variance of \eqn{y}, again
-#' all computed from centered \eqn{X} and \eqn{y}. Note that here
-#' \code{R} and \code{bhat} should be computed using the same matrix
-#' \eqn{X}. If you do not have access to the original \eqn{X} to
-#' compute the matrix \code{R} then use \code{\link{susie_rss}}.
 #'
 #' The handling of the intercept term in \code{susie_suff_stat} needs
 #' some additional explanation. Computing the summary data after
@@ -303,7 +294,6 @@
 #'
 #' @importFrom stats var
 #' @importFrom utils modifyList
-#' @importFrom crayon magenta
 #'
 #' @export
 #'
@@ -311,7 +301,7 @@ susie = function (X,y,L = min(10,ncol(X)),
                    scaled_prior_variance = 0.2,
                    residual_variance = NULL,
                    prior_weights = NULL,
-                   null_weight = NULL,
+                   null_weight = 0,
                    standardize = TRUE,
                    intercept = TRUE,
                    estimate_residual_variance = TRUE,
@@ -367,10 +357,10 @@ susie = function (X,y,L = min(10,ncol(X)),
   }
   p = ncol(X)
   if (p > 1000 & !requireNamespace("Rfast",quietly = TRUE))
-    message(magenta("For an X with many columns, please consider installing ",
-                    "the Rfast package for more efficient credible set (CS) ",
-                    "calculations."))
-  
+    warning_message("For an X with many columns, please consider installing",
+                    "the Rfast package for more efficient credible set (CS)",
+                    "calculations.", style='hint')
+
   # Check input y.
   n = nrow(X)
   mean_y = mean(y)
@@ -407,7 +397,7 @@ susie = function (X,y,L = min(10,ncol(X)),
     if(missing(L)){
       L = num_effects
     }else if(min(p,L) < num_effects){
-      warning(paste("Specified number of effects L =",min(p,L),
+      warning_message(paste("Specified number of effects L =",min(p,L),
                     "is smaller than the number of effects",num_effects,
                     "in input SuSiE model. The SuSiE model will have",
                     num_effects,"effects."))
@@ -451,7 +441,7 @@ susie = function (X,y,L = min(10,ncol(X)),
         print(paste0("objective:",get_objective(X,y,s)))
     }
   }
-  
+
   # Remove first (infinite) entry, and trailing NAs.
   elbo = elbo[2:(i+1)]
   s$elbo = elbo
@@ -477,7 +467,7 @@ susie = function (X,y,L = min(10,ncol(X)),
 
   if (track_fit)
     s$trace = tracking
-  
+
   # SuSiE CS and PIP.
   if (!is.null(coverage) && !is.null(min_abs_corr)) {
     s$sets = susie_get_cs(s,coverage = coverage,X = X,
@@ -500,6 +490,11 @@ susie = function (X,y,L = min(10,ncol(X)),
   }
   # report z-scores from univariate regression.
   if (compute_univariate_zscore) {
+    if (!is.matrix(X))
+      warning("Calculation of univariate regression z-scores is not ",
+              "implemented specifically for sparse or trend filtering ",
+              "matrices, so this step may be slow if the matrix is large; ",
+              "to skip this step set compute_univariate_zscore = FALSE")
     if (!is.null(null_weight) && null_weight != 0)
       X = X[,1:(ncol(X) - 1)]
     s$z = calc_z(X,y,center = intercept,scale = standardize)

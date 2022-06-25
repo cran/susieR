@@ -1,20 +1,5 @@
 #' @rdname susie
 #'
-#' @param bhat A p-vector of estimated effects.
-#'
-#' @param shat A p-vector of standard errors.
-#'
-#' @param R A p by p correlation matrix. It should be estimated from
-#'   the same samples used to compute \code{bhat} and \code{shat}. Using
-#'   an out-of-sample matrix may produce unreliable results.
-#'
-#' @param n The sample size.
-#'
-#' @param var_y The sample variance of y, defined as \eqn{y'y/(n-1)}.
-#'   When the sample variance cannot be provided, the coefficients
-#'   (returned from \code{coef}) are computed on the "standardized" X, y
-#'   scale.
-#'
 #' @param XtX A p by p matrix \eqn{X'X} in which the columns of X
 #'   are centered to have mean zero.
 #'
@@ -23,6 +8,8 @@
 #'
 #' @param yty A scalar \eqn{y'y} in which y is centered to have mean
 #'   zero.
+#'
+#' @param n The sample size.
 #'
 #' @param X_colmeans A p-vector of column means of \code{X}. If both
 #'   \code{X_colmeans} and \code{y_mean} are provided, the intercept
@@ -54,11 +41,10 @@
 #' @param n_purity Passed as argument \code{n_purity} to
 #'   \code{\link{susie_get_cs}}.
 #'
-#' @importFrom crayon red magenta
-#' 
+#'
 #' @export
 #'
-susie_suff_stat = function (bhat, shat, R, n, var_y, XtX, Xty, yty,
+susie_suff_stat = function (XtX, Xty, yty, n,
                             X_colmeans = NA, y_mean = NA,
                             maf = NULL, maf_thresh = 0, L = 10,
                             scaled_prior_variance = 0.2,
@@ -68,7 +54,7 @@ susie_suff_stat = function (bhat, shat, R, n, var_y, XtX, Xty, yty,
                             estimate_prior_method = c("optim","EM","simple"),
                             check_null_threshold = 0, prior_tol = 1e-9,
                             r_tol = 1e-08, prior_weights = NULL,
-                            null_weight = NULL, standardize = TRUE,
+                            null_weight = 0, standardize = TRUE,
                             max_iter = 100, s_init = NULL, coverage = 0.95,
                             min_abs_corr = 0.5, tol = 1e-3,
                             verbose = FALSE, track_fit = FALSE,
@@ -80,81 +66,27 @@ susie_suff_stat = function (bhat, shat, R, n, var_y, XtX, Xty, yty,
 
   if (missing(n))
     stop("n must be provided")
-  if (any(n <= 1))
-    stop("n must be more than 1")
+  if (n <= 1)
+    stop("n must be greater than 1")
 
   # Check sufficient statistics.
-  missing_bhat = c(missing(bhat), missing(shat), missing(R))
   missing_XtX = c(missing(XtX), missing(Xty), missing(yty))
 
-  if (all(missing_bhat) & all(missing_XtX))
-    stop("Please provide either all of bhat, shat, R, n, var_y or all of ",
-         "XtX, Xty, yty, n")
-  if (any(missing_bhat) & any(missing_XtX))
-    stop("Please provide either all of bhat, shat, R, n, var_y or all of ",
-         "XtX, Xty, yty, n")
-  if (all(missing_bhat) & any(missing_XtX))
+  if (all(missing_XtX))
     stop("Please provide all of XtX, Xty, yty, n")
-  if (all(missing_XtX) & any(missing_bhat))
-    stop("Please provide all of bhat, shat, R, n, var_y")
-  if ((!any(missing_XtX)) & (!all(missing_bhat)))
-    warning("Only using information from XtX, Xty, yty, n")
-  if (!any(missing_bhat)) {
-    if (!all(missing_XtX))
-      warning("Only using information from bhat, shat, R, n, var_y")
 
-    # Compute XtX, Xty, yty from bhat, shat, R, n, var_y.
-    if (length(shat) == 1)
-      shat = rep(shat,length(bhat))
-    if (length(bhat) != length(shat))
-      stop("The length of bhat does not agree with length of shat")
-    if (anyNA(bhat) || anyNA(shat))
-      stop("The input summary statistics have missing values")
-    if (any(shat == 0))
-      stop("shat contains one or more zeros")
-
-    that = bhat/shat
-    that[is.na(that)] = 0
-    R2 = that^2/(that^2 + n-2)
-    sigma2 = (n-1)*(1-R2)/(n-2)
-
-    # Convert any input R to correlation matrix.
-    # If R has 0 colums and rows, cov2cor produces NaN and warning.
-    X0 = diag(R) == 0
-    R = muffled_cov2cor(R)
-
-    # Change the columns and rows with NaN to 0.
-    if (sum(X0) > 0)
-      R[X0,] = R[,X0] = 0
-
-    if (missing(var_y)) {
-      XtX = (n-1)*R
-      Xty = sqrt(sigma2) * sqrt(n-1) * that
-      var_y = 1
-    } else {
-      XtXdiag = var_y * sigma2/(shat^2)
-      Xty = that * var_y * sigma2/shat
-      XtX = R
-      XtX = R * sqrt(XtXdiag)
-      XtX = t(XtX)
-      XtX = XtX * sqrt(XtXdiag)
-      XtX = XtX + t(XtX)
-      XtX = XtX/2
-    }
-    yty = var_y * (n-1)
-  }
   if (ncol(XtX) > 1000 & !requireNamespace("Rfast",quietly = TRUE))
-    message(magenta("For large R or large XtX, consider installing the ",
-                    "Rfast package for better performance."))
-  
+    warning_message("For large R or large XtX, consider installing the ",
+                    "Rfast package for better performance.", style="hint")
+
   # Check input XtX.
   if (ncol(XtX) != length(Xty))
     stop(paste0("The dimension of XtX (",nrow(XtX)," by ",ncol(XtX),
                 ") does not agree with expected (",length(Xty)," by ",
                 length(Xty),")"))
   if (!is_symmetric_matrix(XtX)) {
-    message(red("XtX is not symmetric; forcing XtX to be symmetric by ",
-                "replacing XtX with (XtX + t(XtX))/2"))
+    warning_message("XtX is not symmetric; forcing XtX to be symmetric by ",
+            "replacing XtX with (XtX + t(XtX))/2")
     XtX = XtX + t(XtX)
     XtX = XtX/2
   }
@@ -169,15 +101,15 @@ susie_suff_stat = function (bhat, shat, R, n, var_y, XtX, Xty, yty,
   }
 
   if (any(is.infinite(Xty)))
-    stop("Input Xty or zscores contains infinite values")
+    stop("Input Xty contains infinite values")
   if (!(is.double(XtX) & is.matrix(XtX)) & !inherits(XtX,"CsparseMatrix"))
-    stop("Input XtX or R must be a double-precision matrix, or a sparse matrix")
+    stop("Input XtX must be a double-precision matrix, or a sparse matrix")
   if (anyNA(XtX))
-    stop("Input XtX or R matrix contains NAs")
-  
-  # Replace NAs in z with zeros.
+    stop("Input XtX matrix contains NAs")
+
+  # Replace NAs in Xty with zeros.
   if (anyNA(Xty)) {
-    warning("NA values in Xty or z-scores are replaced with 0")
+    warning_message("NA values in Xty are replaced with 0")
     Xty[is.na(Xty)] = 0
   }
 
@@ -191,7 +123,7 @@ susie_suff_stat = function (bhat, shat, R, n, var_y, XtX, Xty, yty,
     # Check whether Xty in space spanned by the non-zero eigenvectors of XtX
     proj = check_projection(semi_pd$matrix,Xty)
     if (!proj$status)
-      warning("Xty does not lie in the space of the non-zero eigenvectors ",
+      warning_message("Xty does not lie in the space of the non-zero eigenvectors ",
               "of XtX")
   }
 
@@ -216,9 +148,7 @@ susie_suff_stat = function (bhat, shat, R, n, var_y, XtX, Xty, yty,
     dXtX = diag(XtX)
     csd = sqrt(dXtX/(n-1))
     csd[csd == 0] = 1
-    XtX = (1/csd) * XtX
-    XtX = t(XtX)
-    XtX = XtX / csd
+    XtX = t((1/csd) * XtX) / csd
     Xty = Xty / csd
   } else
     csd = rep(1,length = p)
@@ -243,14 +173,14 @@ susie_suff_stat = function (bhat, shat, R, n, var_y, XtX, Xty, yty,
     if (max(s_init$alpha) > 1 || min(s_init$alpha) < 0)
       stop("s_init$alpha has invalid values outside range [0,1]; please ",
            "check your input")
-    
+
     # First, remove effects with s_init$V = 0
     s_init = susie_prune_single_effects(s_init)
     num_effects = nrow(s_init$alpha)
     if(missing(L)){ # if L is not specified, we set it as in s_init.
       L = num_effects
     }else if(min(p, L) < num_effects){
-      warning(paste("Specified number of effects L =",min(p, L),
+      warning_message(paste("Specified number of effects L =",min(p, L),
                     "is smaller than the number of effects",num_effects,
                     "in input SuSiE model. The initialized SuSiE model will have",
                     num_effects,"effects."))
@@ -283,6 +213,7 @@ susie_suff_stat = function (bhat, shat, R, n, var_y, XtX, Xty, yty,
     if(check_prior){
       if(any(s$V > 100*(zm^2))){
         stop('The estimated prior variance is unreasonably large.
+	     This is usually caused by mismatch between the summary statistics and the LD matrix.
              Please check the input.')
       }
     }

@@ -13,7 +13,7 @@ susie_rss_lambda = function(z, R, maf = NULL, maf_thresh = 0,
                             L = 10, lambda = 0,
                             prior_variance = 50, residual_variance = NULL,
                             r_tol = 1e-08, prior_weights = NULL,
-                            null_weight = NULL,
+                            null_weight = 0,
                             estimate_residual_variance = TRUE,
                             estimate_prior_variance = TRUE,
                             estimate_prior_method = c("optim", "EM", "simple"),
@@ -51,7 +51,7 @@ susie_rss_lambda = function(z, R, maf = NULL, maf_thresh = 0,
 
   # Replace NAs in z with zero.
   if (anyNA(z)) {
-    warning("NA values in z-scores are replaced with 0")
+    warning_message("NA values in z-scores are replaced with 0")
     z[is.na(z)] = 0
   }
 
@@ -85,7 +85,7 @@ susie_rss_lambda = function(z, R, maf = NULL, maf_thresh = 0,
   if (check_z) {
     proj = check_projection(R,z)
     if (!proj$status)
-      warning("Input z does not lie in the space of non-zero eigenvectors ",
+      warning_message("Input z does not lie in the space of non-zero eigenvectors ",
               "of R.")
     else
       message("Input z is in space spanned by the non-zero eigenvectors of ",
@@ -118,7 +118,7 @@ susie_rss_lambda = function(z, R, maf = NULL, maf_thresh = 0,
     if(missing(L)){
       L = num_effects
     }else if(L < num_effects){
-      warning(paste("Specified number of effects L =",L,
+      warning_message(paste("Specified number of effects L =",L,
                     "is smaller than the number of effects",num_effects,
                     "in input SuSiE model. It will have",num_effects,"effects."))
       L = num_effects

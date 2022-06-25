@@ -12,34 +12,65 @@
 
 <meta name="author" content="Kaiqian Zhang" />
 
-<meta name="date" content="2021-11-12" />
+<meta name="date" content="2022-06-20" />
 
 <title>SuSiE with L0Learn initialization example</title>
 
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
 
 
-<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
 <style type="text/css" data-origin="pandoc">
-a.sourceLine { display: inline-block; line-height: 1.25; }
-a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
-a.sourceLine:empty { height: 1.2em; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
-code.sourceCode { white-space: pre; position: relative; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
 div.sourceCode { margin: 1em 0; }
 pre.sourceCode { margin: 0; }
 @media screen {
 div.sourceCode { overflow: auto; }
 }
 @media print {
-code.sourceCode { white-space: pre-wrap; }
-a.sourceLine { text-indent: -1em; padding-left: 1em; }
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
-pre.numberSource a.sourceLine
-  { position: relative; left: -4em; }
-pre.numberSource a.sourceLine::before
-  { content: attr(data-line-number);
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
     position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; pointer-events: all; display: inline-block;
+    border: none; display: inline-block;
     -webkit-touch-callout: none; -webkit-user-select: none;
     -khtml-user-select: none; -moz-user-select: none;
     -ms-user-select: none; user-select: none;
@@ -48,9 +79,9 @@ pre.numberSource a.sourceLine::before
   }
 pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
 div.sourceCode
-  {  }
+  {   }
 @media screen {
-a.sourceLine::before { text-decoration: underline; }
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 code span.al { color: #ff0000; font-weight: bold; } /* Alert */
 code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
@@ -104,6 +135,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   }
 })();
 </script>
+
 
 
 
@@ -299,72 +331,83 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<h1 class="title toc-ignore">SuSiE with L0Learn initialization example</h1>
+<h1 class="title toc-ignore">SuSiE with L0Learn initialization
+example</h1>
 <h4 class="author">Kaiqian Zhang</h4>
-<h4 class="date">2021-11-12</h4>
+<h4 class="date">2022-06-20</h4>
 
 
 
-<p><code>susieR</code> allows for a customized initialization. In this vignette we deomonstrate how to use <a href="https://github.com/hazimehh/L0Learn"><code>L0Learn</code></a> fit to initialize susieR.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">library</span>(susieR)</a>
-<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw">library</span>(L0Learn)</a></code></pre></div>
+<p><code>susieR</code> allows for a customized initialization. In this
+vignette we deomonstrate how to use <a href="https://github.com/hazimehh/L0Learn"><code>L0Learn</code></a> fit
+to initialize susieR.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(susieR)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(L0Learn)</span></code></pre></div>
 <div id="simulate-data" class="section level2">
 <h2>Simulate data</h2>
 <p>First, we simulate data from the minimal example.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="kw">set.seed</span>(<span class="dv">1</span>)</a>
-<a class="sourceLine" id="cb2-2" data-line-number="2">n =<span class="st"> </span><span class="dv">1000</span></a>
-<a class="sourceLine" id="cb2-3" data-line-number="3">p =<span class="st"> </span><span class="dv">1000</span></a>
-<a class="sourceLine" id="cb2-4" data-line-number="4">beta =<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>,p)</a>
-<a class="sourceLine" id="cb2-5" data-line-number="5">beta[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">300</span>,<span class="dv">400</span>)] =<span class="st"> </span><span class="dv">1</span></a>
-<a class="sourceLine" id="cb2-6" data-line-number="6">X =<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">rnorm</span>(n<span class="op">*</span>p),<span class="dt">nrow=</span>n,<span class="dt">ncol=</span>p)</a>
-<a class="sourceLine" id="cb2-7" data-line-number="7">y =<span class="st"> </span>X <span class="op">%*%</span><span class="st"> </span>beta <span class="op">+</span><span class="st"> </span><span class="kw">rnorm</span>(n)</a></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>n <span class="ot">=</span> <span class="dv">1000</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>p <span class="ot">=</span> <span class="dv">1000</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>beta <span class="ot">=</span> <span class="fu">rep</span>(<span class="dv">0</span>,p)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>beta[<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">300</span>,<span class="dv">400</span>)] <span class="ot">=</span> <span class="dv">1</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>X <span class="ot">=</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(n<span class="sc">*</span>p),<span class="at">nrow=</span>n,<span class="at">ncol=</span>p)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>y <span class="ot">=</span> X <span class="sc">%*%</span> beta <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span></code></pre></div>
 </div>
 <div id="fit-l0learn" class="section level2">
 <h2>Fit L0Learn</h2>
-<p>We start with fitting a L0-regularized model to the simulated data.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="kw">set.seed</span>(<span class="dv">1</span>)</a>
-<a class="sourceLine" id="cb3-2" data-line-number="2">L0fit =<span class="st"> </span><span class="kw">L0Learn.cvfit</span>(X, y, <span class="dt">penalty =</span> <span class="st">&quot;L0&quot;</span>)</a></code></pre></div>
-<p>Let’s choose the penalty strength parameter that minimizes the cross-validation error.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1">lambdaIndex =<span class="st"> </span><span class="kw">which.min</span>(L0fit<span class="op">$</span>cvMeans[[<span class="dv">1</span>]]) </a>
-<a class="sourceLine" id="cb4-2" data-line-number="2">L0coef =<span class="st"> </span><span class="kw">as.numeric</span>(<span class="kw">coef</span>(L0fit<span class="op">$</span>fit, <span class="dt">lambda =</span> L0fit<span class="op">$</span>fit<span class="op">$</span>lambda[[<span class="dv">1</span>]][lambdaIndex]))</a>
-<a class="sourceLine" id="cb4-3" data-line-number="3">effect.beta =<span class="st"> </span>L0coef[<span class="kw">which</span>(L0coef<span class="op">!=</span><span class="dv">0</span>)][<span class="op">-</span><span class="dv">1</span>]</a>
-<a class="sourceLine" id="cb4-4" data-line-number="4">effect.index =<span class="st"> </span>(<span class="kw">which</span>(L0coef<span class="op">!=</span><span class="dv">0</span>)<span class="op">-</span><span class="dv">1</span>)[<span class="op">-</span><span class="dv">1</span>] </a>
-<a class="sourceLine" id="cb4-5" data-line-number="5"><span class="kw">length</span>(effect.beta)</a>
-<a class="sourceLine" id="cb4-6" data-line-number="6"><span class="co"># [1] 5</span></a>
-<a class="sourceLine" id="cb4-7" data-line-number="7">effect.beta[<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>]</a>
-<a class="sourceLine" id="cb4-8" data-line-number="8"><span class="co">#  [1]  1.0630345  1.0199835  0.9825537  1.0071008 -0.1124102         NA</span></a>
-<a class="sourceLine" id="cb4-9" data-line-number="9"><span class="co">#  [7]         NA         NA         NA         NA</span></a>
-<a class="sourceLine" id="cb4-10" data-line-number="10">effect.index[<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>]</a>
-<a class="sourceLine" id="cb4-11" data-line-number="11"><span class="co">#  [1]   1   2 300 400 555  NA  NA  NA  NA  NA</span></a></code></pre></div>
-<p>The L0Learn model finds 5 effects, which will be used to initialize susie.</p>
+<p>We start with fitting a L0-regularized model to the simulated
+data.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>L0fit <span class="ot">=</span> <span class="fu">L0Learn.cvfit</span>(X, y, <span class="at">penalty =</span> <span class="st">&quot;L0&quot;</span>)</span></code></pre></div>
+<p>Let’s choose the penalty strength parameter that minimizes the
+cross-validation error.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>lambdaIndex <span class="ot">=</span> <span class="fu">which.min</span>(L0fit<span class="sc">$</span>cvMeans[[<span class="dv">1</span>]]) </span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>L0coef <span class="ot">=</span> <span class="fu">as.numeric</span>(<span class="fu">coef</span>(L0fit<span class="sc">$</span>fit, <span class="at">lambda =</span> L0fit<span class="sc">$</span>fit<span class="sc">$</span>lambda[[<span class="dv">1</span>]][lambdaIndex]))</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>effect.beta <span class="ot">=</span> L0coef[<span class="fu">which</span>(L0coef<span class="sc">!=</span><span class="dv">0</span>)][<span class="sc">-</span><span class="dv">1</span>]</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>effect.index <span class="ot">=</span> (<span class="fu">which</span>(L0coef<span class="sc">!=</span><span class="dv">0</span>)<span class="sc">-</span><span class="dv">1</span>)[<span class="sc">-</span><span class="dv">1</span>] </span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(effect.beta)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co"># [1] 5</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>effect.beta[<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>]</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="co">#  [1]  1.0630345  1.0199835  0.9825537  1.0071008 -0.1124102         NA</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="co">#  [7]         NA         NA         NA         NA</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>effect.index[<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>]</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="co">#  [1]   1   2 300 400 555  NA  NA  NA  NA  NA</span></span></code></pre></div>
+<p>The L0Learn model finds 5 effects, which will be used to initialize
+susie.</p>
 </div>
 <div id="build-an-initialization-object" class="section level2">
 <h2>Build an initialization object</h2>
-<p>We create an initialization from <code>l0learn</code> coefficients using <code>susie_init_coef</code> function,</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="kw">set.seed</span>(<span class="dv">1</span>)</a>
-<a class="sourceLine" id="cb5-2" data-line-number="2">s.init =<span class="st"> </span><span class="kw">susie_init_coef</span>(effect.index, effect.beta, p)</a></code></pre></div>
+<p>We create an initialization from <code>l0learn</code> coefficients
+using <code>susie_init_coef</code> function,</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>s.init <span class="ot">=</span> <span class="fu">susie_init_coef</span>(effect.index, effect.beta, p)</span></code></pre></div>
 </div>
 <div id="run-susier-with-initialization" class="section level2">
 <h2>Run susieR with initialization</h2>
-<p>Now, we use <code>effect.index</code> and <code>effect.beta</code> obtained from L0Learn fit to create an <code>s.init</code> object. We then run susie with this initialization.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1">susieL0.fit =<span class="st"> </span><span class="kw">susie</span>(X,y,<span class="dt">s_init=</span>s.init)</a>
-<a class="sourceLine" id="cb6-2" data-line-number="2">susieL0.fit<span class="op">$</span>sets<span class="op">$</span>cs</a>
-<a class="sourceLine" id="cb6-3" data-line-number="3"><span class="co"># $L1</span></a>
-<a class="sourceLine" id="cb6-4" data-line-number="4"><span class="co"># [1] 1</span></a>
-<a class="sourceLine" id="cb6-5" data-line-number="5"><span class="co"># </span></a>
-<a class="sourceLine" id="cb6-6" data-line-number="6"><span class="co"># $L2</span></a>
-<a class="sourceLine" id="cb6-7" data-line-number="7"><span class="co"># [1] 2</span></a>
-<a class="sourceLine" id="cb6-8" data-line-number="8"><span class="co"># </span></a>
-<a class="sourceLine" id="cb6-9" data-line-number="9"><span class="co"># $L3</span></a>
-<a class="sourceLine" id="cb6-10" data-line-number="10"><span class="co"># [1] 300</span></a>
-<a class="sourceLine" id="cb6-11" data-line-number="11"><span class="co"># </span></a>
-<a class="sourceLine" id="cb6-12" data-line-number="12"><span class="co"># $L4</span></a>
-<a class="sourceLine" id="cb6-13" data-line-number="13"><span class="co"># [1] 400</span></a></code></pre></div>
+<p>Now, we use <code>effect.index</code> and <code>effect.beta</code>
+obtained from L0Learn fit to create an <code>s.init</code> object. We
+then run susie with this initialization.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>susieL0.fit <span class="ot">=</span> <span class="fu">susie</span>(X,y,<span class="at">s_init=</span>s.init)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>susieL0.fit<span class="sc">$</span>sets<span class="sc">$</span>cs</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co"># $L1</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># [1] 1</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co"># $L2</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co"># [1] 2</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="co"># $L3</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="co"># [1] 300</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="co"># $L4</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="co"># [1] 400</span></span></code></pre></div>
 </div>
 <div id="references" class="section level2">
 <h2>References</h2>
 <ol style="list-style-type: decimal">
-<li>Hussein Hazimeh and Rahul Mazumder. (2018). Fast Best Subset Selection: Coordinate Descent and Local Combinatorial Optimization Algorithms.</li>
+<li>Hussein Hazimeh and Rahul Mazumder. (2018). Fast Best Subset
+Selection: Coordinate Descent and Local Combinatorial Optimization
+Algorithms.</li>
 </ol>
 </div>
 
