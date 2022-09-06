@@ -12,7 +12,7 @@
 
 <meta name="author" content="Kaiqian Zhang" />
 
-<meta name="date" content="2022-08-19" />
+<meta name="date" content="2022-09-05" />
 
 <title>Evaluation of sparse version of SuSiE</title>
 
@@ -333,7 +333,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">Evaluation of sparse version of SuSiE</h1>
 <h4 class="author">Kaiqian Zhang</h4>
-<h4 class="date">2022-08-19</h4>
+<h4 class="date">2022-09-05</h4>
 
 
 
@@ -369,7 +369,7 @@ dense matrix and a sparse matrix at sparsity <span class="math inline">\(99\%\)<
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>beta <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>,p)</span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>beta[<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">300</span>,<span class="dv">400</span>,<span class="dv">1000</span>)] <span class="ot">&lt;-</span> <span class="dv">10</span> </span>
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>X.dense  <span class="ot">&lt;-</span> <span class="fu">create_sparsity_mat</span>(<span class="fl">0.99</span>,n,p)</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>X.sparse <span class="ot">&lt;-</span> <span class="fu">as</span>(X.dense,<span class="st">&quot;dgCMatrix&quot;</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>X.sparse <span class="ot">&lt;-</span> <span class="fu">as</span>(X.dense,<span class="st">&quot;CsparseMatrix&quot;</span>)</span>
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">c</span>(X.dense <span class="sc">%*%</span> beta <span class="sc">+</span> <span class="fu">rnorm</span>(n))</span></code></pre></div>
 </div>
 <div id="x-in-a-dense-form" class="section level2">

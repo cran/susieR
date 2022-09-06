@@ -44,10 +44,19 @@ set_X_attributes = function (X, center = TRUE, scale = TRUE) {
       cm = rep(0,length = length(cm))
     if (!scale) 
       csd = rep(1,length = length(cm))
-    X.std = (t(X) - cm)/csd
-    
+
+    # Ah, this code is very inefficient because the matrix becomes
+    # dense!
+    # 
+    #   X.std = as.matrix(X)
+    #   X.std = (t(X.std) - cm)/csd
+    #   attr(X,"d") = rowSums(X.std * X.std)
+    #
     # Set three attributes for X.
-    attr(X,"d") = rowSums(X.std * X.std)
+    n = nrow(X)
+    d = n*colMeans(X)^2 + (n-1)*compute_colSds(X)^2
+    d = (d - n*cm^2)/csd^2
+    attr(X,"d") = d
     attr(X,"scaled:center") = cm
     attr(X,"scaled:scale") = csd
   }
@@ -70,7 +79,7 @@ simulate = function(n=100, p=200, sparse=F) {
   beta[1:4] = 10
   if (sparse) {
     X = create_sparsity_mat(0.99,n,p)
-    X.sparse = as(X,'dgCMatrix')
+    X.sparse = as(X,"CsparseMatrix")
   } else {
     X = matrix(rnorm(n*p,3,4),n,p)
     X.sparse = NA

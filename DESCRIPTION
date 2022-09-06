@@ -15,8 +15,8 @@ Description: Implements methods for variable selection in linear
     called "Iterative Bayesian Stepwise Selection" (IBSS), is simple
     and fast, allowing the SuSiE model be fit to large data sets
     (thousands of samples and hundreds of thousands of variables).
-Date: 2022-08-19
-Version: 0.12.19
+Date: 2022-09-05
+Version: 0.12.27
 Authors@R: c(person("Gao","Wang",role="aut",email="wang.gao@columbia.edu"),
              person("Yuxin","Zou",role="aut"),
              person("Kaiqian","Zhang",role="aut"),
@@ -36,7 +36,7 @@ LazyDataCompression: xz
 NeedsCompilation: no
 RoxygenNote: 7.1.2
 VignetteBuilder: knitr
-Packaged: 2022-08-19 19:27:55 UTC; pcarbo
+Packaged: 2022-09-06 01:27:57 UTC; pcarbo
 Author: Gao Wang [aut],
   Yuxin Zou [aut],
   Kaiqian Zhang [aut],
@@ -44,4 +44,4 @@ Author: Gao Wang [aut],
   Matthew Stephens [aut]
 Maintainer: Peter Carbonetto <peter.carbonetto@gmail.com>
 Repository: CRAN
-Date/Publication: 2022-08-20 07:10:08 UTC
+Date/Publication: 2022-09-06 12:50:02 UTC

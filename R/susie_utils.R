@@ -924,20 +924,17 @@ compute_colstats = function (X, center = TRUE, scale = TRUE) {
 # @param X an n by p matrix of any type, e.g. sparse, dense.
 # @return a p vector of column standard deviations.
 #
-#' @importFrom Matrix rowSums
-#' @importFrom Matrix colSums
-#' @importFrom Matrix rowMeans
 #' @importFrom matrixStats colSds
+#' @importFrom Matrix summary
 compute_colSds = function(X) {
   if (is.matrix(X))
-    y = colSds(X)
+    return(colSds(X))
   else {
     n = nrow(X)
-    X = t(X)
-    X = X - rowMeans(X)
-    y = sqrt(rowSums(X^2)/(n-1))
+    Y = apply_nonzeros(X,function (u) u^2)
+    d = colMeans(Y) - colMeans(X)^2
+    return(sqrt(d*n/(n-1)))
   }
-  return(y)
 }
 
 # @title Check whether A is positive semidefinite
@@ -990,4 +987,13 @@ warning_message = function(..., style=c("warning", "hint")) {
     alert <- combine_styles("bold", "underline", "magenta")	
     message(alert("HINT:"), " ", ...)
   }
+}
+
+# Apply operation f to all nonzeros of a sparse matrix.
+#
+#' @importFrom Matrix sparseMatrix
+#' 
+apply_nonzeros <- function (X, f) {
+  d <- summary(X)
+  return(sparseMatrix(i = d$i,j = d$j,x = f(d$x),dims = dim(X)))
 }
