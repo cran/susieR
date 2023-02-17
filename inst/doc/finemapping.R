@@ -73,8 +73,7 @@ susie_plot(fitted, y='PIP', b=b)
 #  }
 #  
 #  out = remove.covariate.effects(X, Z, Y[,1])
-#  fitted_adjusted = susie(out$X, out$y,
-#                 L = 10) ,
+#  fitted_adjusted = susie(out$X, out$y, L = 10)
 
 ## -----------------------------------------------------------------------------
 sessionInfo()

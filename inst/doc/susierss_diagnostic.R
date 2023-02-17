@@ -64,6 +64,6 @@ z[SummaryConsistency$flip_id] = -z[SummaryConsistency$flip_id]
 fit = susie_rss(z, ld, n=n)
 susie_plot(fit, y='PIP', b=b)
 
-## -----------------------------------------------------------------------------
+## ----session-info-------------------------------------------------------------
 sessionInfo()
 

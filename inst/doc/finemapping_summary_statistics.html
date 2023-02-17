@@ -12,7 +12,7 @@
 
 <meta name="author" content="Yuxin Zou and Gao Wang" />
 
-<meta name="date" content="2022-09-05" />
+<meta name="date" content="2023-02-17" />
 
 <title>Fine-mapping with summary statistics</title>
 
@@ -333,7 +333,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">Fine-mapping with summary statistics</h1>
 <h4 class="author">Yuxin Zou and Gao Wang</h4>
-<h4 class="date">2022-09-05</h4>
+<h4 class="date">2023-02-17</h4>
 
 
 
@@ -347,7 +347,11 @@ changes in expression level. This data set is shipped with
 <code>susieR</code>. It is simulated to have exactly three non-zero
 effects.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(susieR)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span></code></pre></div>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Warning: replacing previous import &#39;lifecycle::last_warnings&#39; by</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># &#39;rlang::last_warnings&#39; when loading &#39;tibble&#39;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Warning: replacing previous import &#39;lifecycle::last_warnings&#39; by</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># &#39;rlang::last_warnings&#39; when loading &#39;pillar&#39;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span></code></pre></div>
 <div id="the-data-set" class="section level2">
 <h2>The data-set</h2>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(N3finemapping)</span>
@@ -379,9 +383,11 @@ to perform fine-mapping with given an additional input of correlation
 matrix between variables. The correlation matrix in genetics is
 typically referred to as an “LD matrix” (LD is short for linkage
 disequilibrium). One may use external reference panels to estimate it
-when this matrix cannot be obtained from samples directly. Importantly,
-the LD matrix has to be a matrix containing estimates of the
-correlation, <span class="math inline">\(r\)</span>, and not <span class="math inline">\(r^2\)</span> or <span class="math inline">\(|r|\)</span>.</p>
+when this matrix cannot be obtained from samples directly.
+<em>Importantly, the LD matrix has to be a matrix containing estimates
+of the correlation, <span class="math inline">\(r\)</span>, and not
+<span class="math inline">\(r^2\)</span> or <span class="math inline">\(|r|\)</span>.</em> See also <a href="susierss_diagnostic.html">this vignette</a> for how to check the
+consistency of the LD matrix with the summary statistics.</p>
 <p>The <code>univariate_regression</code> function can be used to
 compute summary statistics by fitting univariate simple regression
 variable by variable. The results are <span class="math inline">\(\hat{\beta}\)</span> and <span class="math inline">\(SE(\hat{\beta})\)</span> from which z-scores can
@@ -451,8 +457,8 @@ three different colours (green, purple, blue).</p>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co"># [1] TRUE</span></span>
 <span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="fu">all.equal</span>(<span class="fu">coef</span>(fitted)[<span class="sc">-</span><span class="dv">1</span>], <span class="fu">coef</span>(fitted_rss1)[<span class="sc">-</span><span class="dv">1</span>])</span>
 <span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="co"># [1] TRUE</span></span></code></pre></div>
-<p>If, on the other hand, the variance of &amp;y&amp; is unknown, we fit
-can SuSiE regression with summary statistics, <span class="math inline">\(\hat{\beta}\)</span>, <span class="math inline">\(SE(\hat{\beta})\)</span>, <span class="math inline">\(R\)</span> and <span class="math inline">\(n\)</span> (or <em>z</em>-scores, <span class="math inline">\(R\)</span> and <span class="math inline">\(n\)</span>). The outputted effect estimates are
+<p>If, on the other hand, the variance of <span class="math inline">\(y\)</span> is unknown, we fit can SuSiE regression
+with summary statistics, <span class="math inline">\(\hat{\beta}\)</span>, <span class="math inline">\(SE(\hat{\beta})\)</span>, <span class="math inline">\(R\)</span> and <span class="math inline">\(n\)</span> (or <em>z</em>-scores, <span class="math inline">\(R\)</span> and <span class="math inline">\(n\)</span>). The outputted effect estimates are
 now on the standardized <span class="math inline">\(X\)</span> and <span class="math inline">\(y\)</span> scale. Still, we can estimate the
 residual variance because we have the in-sample LD matrix:</p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>fitted_rss2 <span class="ot">=</span> <span class="fu">susie_rss</span>(<span class="at">z =</span> z_scores, <span class="at">R =</span> R, <span class="at">n =</span> n, <span class="at">L =</span> <span class="dv">10</span>,</span>
@@ -506,7 +512,7 @@ are quite similar.</p>
  
 </p>
 </div>
-<p>In some rare cases, the sample size <span class="math inline">\(n\)</span> is unknown. When the sampel size is not
+<p>In some rare cases, the sample size <span class="math inline">\(n\)</span> is unknown. When the sample size is not
 provided as input to <code>susie_rss</code>, this is in effect assuming
 the sample size is infinity and all the effects are small, and the
 estimated PVE for each variant will be close to zero. The outputted
@@ -541,23 +547,23 @@ versions of R, and the R packages, used to generate these results.</p>
 <span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a><span class="co"># [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
 <span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
 <span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a><span class="co"># other attached packages:</span></span>
-<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a><span class="co"># [1] susieR_0.12.27</span></span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a><span class="co"># [1] susieR_0.12.35</span></span>
 <span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
 <span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a><span class="co"># loaded via a namespace (and not attached):</span></span>
-<span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a><span class="co">#  [1] Rcpp_1.0.8         highr_0.8          plyr_1.8.5         bslib_0.3.1       </span></span>
-<span id="cb19-21"><a href="#cb19-21" aria-hidden="true" tabindex="-1"></a><span class="co">#  [5] compiler_3.6.2     pillar_1.6.2       jquerylib_0.1.4    tools_3.6.2       </span></span>
-<span id="cb19-22"><a href="#cb19-22" aria-hidden="true" tabindex="-1"></a><span class="co">#  [9] digest_0.6.23      jsonlite_1.7.2     evaluate_0.14      lifecycle_1.0.0   </span></span>
-<span id="cb19-23"><a href="#cb19-23" aria-hidden="true" tabindex="-1"></a><span class="co"># [13] tibble_3.1.3       gtable_0.3.0       lattice_0.20-38    pkgconfig_2.0.3   </span></span>
-<span id="cb19-24"><a href="#cb19-24" aria-hidden="true" tabindex="-1"></a><span class="co"># [17] rlang_0.4.11       Matrix_1.4-2       DBI_1.1.0          parallel_3.6.2    </span></span>
-<span id="cb19-25"><a href="#cb19-25" aria-hidden="true" tabindex="-1"></a><span class="co"># [21] yaml_2.2.0         xfun_0.29          fastmap_1.1.0      dplyr_1.0.7       </span></span>
-<span id="cb19-26"><a href="#cb19-26" aria-hidden="true" tabindex="-1"></a><span class="co"># [25] stringr_1.4.0      knitr_1.37         generics_0.0.2     sass_0.4.0        </span></span>
-<span id="cb19-27"><a href="#cb19-27" aria-hidden="true" tabindex="-1"></a><span class="co"># [29] vctrs_0.3.8        RcppZiggurat_0.1.5 Rfast_2.0.3        tidyselect_1.1.1  </span></span>
-<span id="cb19-28"><a href="#cb19-28" aria-hidden="true" tabindex="-1"></a><span class="co"># [33] grid_3.6.2         reshape_0.8.8      glue_1.4.2         R6_2.4.1          </span></span>
-<span id="cb19-29"><a href="#cb19-29" aria-hidden="true" tabindex="-1"></a><span class="co"># [37] fansi_0.4.0        rmarkdown_2.11     mixsqp_0.3-46      irlba_2.3.3       </span></span>
-<span id="cb19-30"><a href="#cb19-30" aria-hidden="true" tabindex="-1"></a><span class="co"># [41] purrr_0.3.4        ggplot2_3.3.6      magrittr_2.0.1     matrixStats_0.61.0</span></span>
-<span id="cb19-31"><a href="#cb19-31" aria-hidden="true" tabindex="-1"></a><span class="co"># [45] scales_1.1.0       htmltools_0.5.2    ellipsis_0.3.2     assertthat_0.2.1  </span></span>
-<span id="cb19-32"><a href="#cb19-32" aria-hidden="true" tabindex="-1"></a><span class="co"># [49] colorspace_1.4-1   utf8_1.1.4         stringi_1.4.3      munsell_0.5.0     </span></span>
-<span id="cb19-33"><a href="#cb19-33" aria-hidden="true" tabindex="-1"></a><span class="co"># [53] crayon_1.4.1</span></span></code></pre></div>
+<span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a><span class="co">#  [1] tidyselect_1.1.1   xfun_0.29          bslib_0.3.1        purrr_0.3.4       </span></span>
+<span id="cb19-21"><a href="#cb19-21" aria-hidden="true" tabindex="-1"></a><span class="co">#  [5] lattice_0.20-38    colorspace_1.4-1   vctrs_0.3.8        generics_0.0.2    </span></span>
+<span id="cb19-22"><a href="#cb19-22" aria-hidden="true" tabindex="-1"></a><span class="co">#  [9] htmltools_0.5.2    yaml_2.2.0         utf8_1.1.4         rlang_1.0.6       </span></span>
+<span id="cb19-23"><a href="#cb19-23" aria-hidden="true" tabindex="-1"></a><span class="co"># [13] mixsqp_0.3-46      jquerylib_0.1.4    pillar_1.6.2       glue_1.4.2        </span></span>
+<span id="cb19-24"><a href="#cb19-24" aria-hidden="true" tabindex="-1"></a><span class="co"># [17] DBI_1.1.0          RcppZiggurat_0.1.5 matrixStats_0.63.0 lifecycle_1.0.0   </span></span>
+<span id="cb19-25"><a href="#cb19-25" aria-hidden="true" tabindex="-1"></a><span class="co"># [21] plyr_1.8.5         stringr_1.4.0      munsell_0.5.0      gtable_0.3.0      </span></span>
+<span id="cb19-26"><a href="#cb19-26" aria-hidden="true" tabindex="-1"></a><span class="co"># [25] evaluate_0.14      knitr_1.37         fastmap_1.1.0      parallel_3.6.2    </span></span>
+<span id="cb19-27"><a href="#cb19-27" aria-hidden="true" tabindex="-1"></a><span class="co"># [29] irlba_2.3.3        fansi_0.4.0        Rfast_2.0.3        highr_0.8         </span></span>
+<span id="cb19-28"><a href="#cb19-28" aria-hidden="true" tabindex="-1"></a><span class="co"># [33] Rcpp_1.0.8         scales_1.1.0       jsonlite_1.7.2     ggplot2_3.3.6     </span></span>
+<span id="cb19-29"><a href="#cb19-29" aria-hidden="true" tabindex="-1"></a><span class="co"># [37] digest_0.6.23      stringi_1.4.3      dplyr_1.0.7        grid_3.6.2        </span></span>
+<span id="cb19-30"><a href="#cb19-30" aria-hidden="true" tabindex="-1"></a><span class="co"># [41] cli_3.5.0          tools_3.6.2        magrittr_2.0.1     sass_0.4.0        </span></span>
+<span id="cb19-31"><a href="#cb19-31" aria-hidden="true" tabindex="-1"></a><span class="co"># [45] tibble_3.1.3       crayon_1.4.1       pkgconfig_2.0.3    ellipsis_0.3.2    </span></span>
+<span id="cb19-32"><a href="#cb19-32" aria-hidden="true" tabindex="-1"></a><span class="co"># [49] Matrix_1.2-18      assertthat_0.2.1   rmarkdown_2.11     reshape_0.8.8     </span></span>
+<span id="cb19-33"><a href="#cb19-33" aria-hidden="true" tabindex="-1"></a><span class="co"># [53] R6_2.4.1           compiler_3.6.2</span></span></code></pre></div>
 </div>
 
 

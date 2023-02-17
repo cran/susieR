@@ -759,7 +759,7 @@ estimate_s_rss = function (z, R, n, r_tol = 1e-08, method = "null-mle") {
 #' @importFrom ggplot2 geom_abline
 #' @importFrom ggplot2 theme_bw
 #' @importFrom ggplot2 labs
-#' @importFrom ggplot2 aes
+#' @importFrom ggplot2 aes_string
 #' @importFrom mixsqp mixsqp
 #'
 #' @examples
@@ -856,17 +856,22 @@ kriging_rss = function (z, R, n, r_tol = 1e-08,
   # Compute (log) likelihood ratios.
   logLRmix = logl1mix - logl0mix
 
-  res = data.frame(z = z,condmean = condmean,condvar = condvar,
-                   z_std_diff = z_std_diff,logLR = logLRmix)
-
-  p = ggplot(res) + geom_point(aes(y = z, x = condmean)) +
+  z          = drop(z)
+  z_std_diff = drop(z_std_diff)
+  res = data.frame(z = z,
+                   condmean = condmean,
+                   condvar = condvar,
+                   z_std_diff = z_std_diff,
+                   logLR = logLRmix)
+  p = ggplot(res,aes_string(y = "z",x = "condmean")) +
+        geom_point() +
         labs(y = "Observed z scores", x = "Expected value") +
         geom_abline(intercept = 0, slope = 1) +
         theme_bw()
   idx = which(logLRmix > 2 & abs(z) > 2)
   if (length(idx) > 0)
     p = p + geom_point(data = res[idx,],
-                       aes(y = z, x = condmean),col = "red")
+                       aes_string(y = "z", x = "condmean"),col = "red")
   return(list(plot = p,conditional_dist = res))
 }
 

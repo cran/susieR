@@ -252,20 +252,21 @@
 #'
 #' @references
 #' G. Wang, A. Sarkar, P. Carbonetto and M. Stephens (2020). A simple
-#'   new approach to variable selection in regression, with application
-#'   to genetic fine-mapping. \emph{Journal of the Royal Statistical
-#'   Society, Series B} \bold{82}, 1273-1300 \doi{10.1101/501114}.
+#' new approach to variable selection in regression, with application
+#' to genetic fine-mapping. \emph{Journal of the Royal Statistical
+#' Society, Series B} \bold{82}, 1273-1300 \doi{10.1101/501114}.
 #'
-#'   Y. Zou, P. Carbonetto, G. Wang and M. Stephens (2021).
-#'   Fine-mapping from summary data with the \dQuote{Sum of Single Effects}
-#'   model. \emph{bioRxiv} \doi{10.1101/2021.11.03.467167}.
+#' Y. Zou, P. Carbonetto, G. Wang, G and M. Stephens
+#' (2022). Fine-mapping from summary data with the \dQuote{Sum of
+#' Single Effects} model. \emph{PLoS Genetics} \bold{18},
+#' e1010299. \doi{10.1371/journal.pgen.1010299}.
 #'
 #' @seealso \code{\link{susie_get_cs}} and other \code{susie_get_*}
-#'   functions for extracting results; \code{\link{susie_trendfilter}} for
-#'   applying the SuSiE model to non-parametric regression, particularly
-#'   changepoint problems, and \code{\link{susie_rss}} for applying the
-#'   SuSiE model when one only has access to limited summary statistics
-#'   related to \eqn{X} and \eqn{y} (typically in genetic applications).
+#' functions for extracting results; \code{\link{susie_trendfilter}} for
+#' applying the SuSiE model to non-parametric regression, particularly
+#' changepoint problems, and \code{\link{susie_rss}} for applying the
+#' SuSiE model when one only has access to limited summary statistics
+#' related to \eqn{X} and \eqn{y} (typically in genetic applications).
 #'
 #' @examples
 #' # susie example
@@ -432,6 +433,7 @@ susie = function (X,y,L = min(10,ncol(X)),
       s$converged = TRUE
       break
     }
+
     if (estimate_residual_variance) {
       s$sigma2 = pmax(residual_variance_lowerbound,
                       estimate_residual_variance(X,y,s))
@@ -536,7 +538,8 @@ susie = function (X,y,L = min(10,ncol(X)),
             check_null_threshold = check_null_threshold,
             prior_tol = prior_tol,coverage = coverage,
             residual_variance_upperbound = residual_variance_upperbound,
-            min_abs_corr = min_abs_corr,compute_univariate_zscore = FALSE,
+            min_abs_corr = min_abs_corr,
+            compute_univariate_zscore = compute_univariate_zscore,
             na.rm = na.rm,max_iter = max_iter,tol = tol,verbose = FALSE,
             track_fit = FALSE,residual_variance_lowerbound = var(drop(y))/1e4,
             refine = FALSE)
@@ -552,7 +555,8 @@ susie = function (X,y,L = min(10,ncol(X)),
             check_null_threshold = check_null_threshold,
             prior_tol = prior_tol,coverage = coverage,
             residual_variance_upperbound = residual_variance_upperbound,
-            min_abs_corr = min_abs_corr,compute_univariate_zscore = FALSE,
+            min_abs_corr = min_abs_corr,
+            compute_univariate_zscore = compute_univariate_zscore,
             na.rm = na.rm,max_iter = max_iter,tol = tol,verbose = FALSE,
             track_fit = FALSE,residual_variance_lowerbound = var(drop(y))/1e4,
             refine = FALSE)
