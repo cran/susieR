@@ -3,7 +3,7 @@ knitr::opts_chunk$set(collapse = TRUE,comment = "#",fig.width = 4.5,
                       fig.height = 3,fig.align = "center",
                       fig.cap = "&nbsp;",dpi = 120)
 
-## ---- warning=FALSE-----------------------------------------------------------
+## ----warning=FALSE------------------------------------------------------------
 library(Matrix)
 library(susieR)
 set.seed(1)

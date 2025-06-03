@@ -26,7 +26,7 @@ plot(y,pch=".")
 lines(mu,col=1,lwd=3)
 lines(predict(s),col=2,lwd=2)
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  # install.packages("remotes")
 #  # remotes::install_github("glmgen/genlasso")
 #  y.tf = trendfilter(y,ord=0)
@@ -36,7 +36,7 @@ lines(predict(s),col=2,lwd=2)
 #  lines(predict(s),col=2,lwd=2)
 #  lines(y.tf$fit[,which(y.tf$lambda==y.tf.cv$lambda.min)],col=4,lwd=2)
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  set.seed(1)
 #  mu = seq(0,4,length=1000)
 #  mu = mu + c(rep(0,500),rep(4,500))
@@ -49,7 +49,7 @@ lines(predict(s),col=2,lwd=2)
 #  lines(predict(s),col=2,lwd=2)
 #  lines(y.tf$fit[,which(y.tf$lambda==y.tf.cv$lambda.min)],col=4,lwd=2)
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  sqrt(mean((mu-y.tf$fit[,which(y.tf$lambda==y.tf.cv$lambda.min)])^2))
 #  sqrt(mean((mu-predict(s))^2))
 

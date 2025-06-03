@@ -60,7 +60,7 @@ fitted = susie(X, Y[,1],
                scaled_prior_variance = 0.2)
 susie_plot(fitted, y='PIP', b=b)
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  remove.covariate.effects <- function (X, Z, y) {
 #    # include the intercept term
 #    if (any(Z[,1]!=1)) Z = cbind(1, Z)

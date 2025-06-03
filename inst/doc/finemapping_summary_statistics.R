@@ -49,7 +49,7 @@ all.equal(coef(fitted)[-1], coef(fitted_rss1)[-1])
 fitted_rss2 = susie_rss(z = z_scores, R = R, n = n, L = 10,
                         estimate_residual_variance = TRUE)
 
-## ---- fig.height=4, fig.width=3.5---------------------------------------------
+## ----fig.height=4, fig.width=3.5----------------------------------------------
 all.equal(fitted$pip, fitted_rss2$pip)
 plot(coef(fitted)[-1], coef(fitted_rss2)[-1], xlab = 'effects from SuSiE', ylab = 'effects from SuSiE-RSS', xlim=c(-1,1), ylim=c(-0.3,0.3))
 
@@ -71,7 +71,7 @@ fitted_rss3 <- susie_rss(z_scores, R_ref, n=n, L = 10)
 ## -----------------------------------------------------------------------------
 susie_plot(fitted_rss3, y="PIP", b=b)
 
-## ---- fig.width=3.5,fig.height=4----------------------------------------------
+## ----fig.width=3.5,fig.height=4-----------------------------------------------
 plot(fitted_rss1$pip, fitted_rss3$pip, ylim=c(0,1), xlab='SuSiE PIP', ylab='SuSiE-RSS PIP')
 
 ## -----------------------------------------------------------------------------
